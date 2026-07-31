@@ -5,7 +5,10 @@ import { PrismaClient } from "../lib/generated/prisma/client";
 import { slugify } from "../lib/format";
 import { config } from "../lib/config";
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined,
+});
 const adapter = new PrismaPg(pool);
 
 const prisma = new PrismaClient({
