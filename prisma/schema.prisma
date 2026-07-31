@@ -1,0 +1,200 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ReservationStatus {
+  CART
+  CHECKOUT
+  CONVERTED
+  RELEASED
+}
+
+enum CouponReservationStatus {
+  HELD
+  CONSUMED
+  RELEASED
+}
+
+enum CouponType {
+  PERCENT
+  FIXED
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentProvider {
+  RAZORPAY
+  STRIPE
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum NotificationChannel {
+  EMAIL
+  WHATSAPP
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Product {
+  id            String             @id @default(cuid())
+  name          String
+  slug          String             @unique
+  description   String
+  price         Int
+  stockQuantity Int
+  imageUrl      String?
+  active        Boolean            @default(true)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  reservations  StockReservation[]
+  orderItems    OrderItem[]
+}
+
+model StockReservation {
+  id        String            @id @default(cuid())
+  productId String
+  product   Product           @relation(fields: [productId], references: [id])
+  sessionId String
+  quantity  Int
+  status    ReservationStatus @default(CART)
+  expiresAt DateTime
+  orderId   String?
+  order     Order?            @relation(fields: [orderId], references: [id])
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@index([sessionId, status])
+  @@index([productId, status, expiresAt])
+  @@index([expiresAt, status])
+}
+
+model Coupon {
+  id           String              @id @default(cuid())
+  code         String              @unique
+  type         CouponType
+  value        Int
+  maxUses      Int
+  usedCount    Int                 @default(0)
+  validFrom    DateTime
+  validUntil   DateTime
+  active       Boolean             @default(true)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  reservations CouponReservation[]
+  orders       Order[]
+}
+
+model CouponReservation {
+  id        String                  @id @default(cuid())
+  couponId  String
+  coupon    Coupon                  @relation(fields: [couponId], references: [id])
+  sessionId String
+  orderId   String?
+  order     Order?                  @relation(fields: [orderId], references: [id])
+  status    CouponReservationStatus @default(HELD)
+  expiresAt DateTime
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+
+  @@index([sessionId, status])
+  @@index([couponId, status, expiresAt])
+  @@index([expiresAt, status])
+}
+
+model Order {
+  id                  String               @id @default(cuid())
+  orderNumber         String               @unique
+  customerEmail       String
+  customerName        String
+  status              OrderStatus          @default(PENDING_PAYMENT)
+  subtotal            Int
+  discount            Int                  @default(0)
+  total               Int
+  shippingAddress     Json
+  sessionId           String
+  couponId            String?
+  coupon              Coupon?              @relation(fields: [couponId], references: [id])
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  items               OrderItem[]
+  stockReservations   StockReservation[]
+  couponReservations  CouponReservation[]
+  payments            Payment[]
+  shippingUpdates     ShippingUpdate[]
+  notifications       NotificationLog[]
+}
+
+model OrderItem {
+  id           String  @id @default(cuid())
+  orderId      String
+  order        Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId    String
+  product      Product @relation(fields: [productId], references: [id])
+  productName  String
+  productPrice Int
+  quantity     Int
+}
+
+model Payment {
+  id         String          @id @default(cuid())
+  orderId    String
+  order      Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  provider   PaymentProvider
+  externalId String
+  amount     Int
+  status     PaymentStatus   @default(PENDING)
+  metadata   Json?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+}
+
+model ShippingUpdate {
+  id        String      @id @default(cuid())
+  orderId   String
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status    OrderStatus
+  note      String?
+  createdAt DateTime    @default(now())
+}
+
+model NotificationLog {
+  id        String              @id @default(cuid())
+  orderId   String
+  order     Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  channel   NotificationChannel
+  status    NotificationStatus  @default(PENDING)
+  payload   Json?
+  sentAt    DateTime?
+  error     String?
+  createdAt DateTime            @default(now())
+}
