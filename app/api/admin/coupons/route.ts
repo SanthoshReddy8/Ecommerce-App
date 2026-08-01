@@ -1,4 +1,4 @@
-import { CouponType } from "@/lib/generated/prisma";
+import { CouponType } from "@/lib/generated/prisma/enums";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { handleApiError } from "@/lib/api";

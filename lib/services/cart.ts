@@ -1,4 +1,4 @@
-import { ReservationStatus } from "@/lib/generated/prisma";
+import { ReservationStatus } from "@/lib/generated/prisma/enums";
 import { prisma } from "@/lib/db";
 import {
   getAvailableStock,

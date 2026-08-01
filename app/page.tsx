@@ -3,6 +3,8 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { ProductCard } from "@/components/products/product-card";
 import { listActiveProducts } from "@/lib/services/cart";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const products = await listActiveProducts();
 

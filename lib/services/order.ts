@@ -1,10 +1,5 @@
-import {
-  OrderStatus,
-  PaymentProvider,
-  PaymentStatus,
-  Prisma,
-  ReservationStatus,
-} from "@/lib/generated/prisma";
+import { OrderStatus, PaymentProvider, PaymentStatus, ReservationStatus } from "@/lib/generated/prisma/enums";
+import { Prisma } from "@/lib/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { generateOrderNumber } from "@/lib/format";
 import {

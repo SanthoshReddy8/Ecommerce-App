@@ -1,7 +1,7 @@
 import {
   NotificationChannel as NotificationChannelEnum,
   NotificationStatus,
-} from "@/lib/generated/prisma";
+} from "@/lib/generated/prisma/enums";
 import { config } from "@/lib/config";
 import { prisma } from "@/lib/db";
 import { EmailChannel } from "@/lib/notifications/email.channel";

@@ -1,4 +1,5 @@
-import { CouponReservationStatus, CouponType, Prisma } from "@/lib/generated/prisma";
+import { CouponReservationStatus, CouponType } from "@/lib/generated/prisma/enums";
+import { Prisma } from "@/lib/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { config } from "@/lib/config";
 import { CouponError } from "@/lib/errors";

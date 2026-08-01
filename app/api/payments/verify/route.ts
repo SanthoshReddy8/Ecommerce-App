@@ -1,4 +1,4 @@
-import { PaymentProvider as PaymentProviderEnum } from "@/lib/generated/prisma";
+import { PaymentProvider as PaymentProviderEnum } from "@/lib/generated/prisma/enums";
 import { NextResponse } from "next/server";
 import { handleApiError } from "@/lib/api";
 import { getPaymentProvider } from "@/lib/payments/factory";
