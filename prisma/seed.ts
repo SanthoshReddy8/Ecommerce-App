@@ -72,23 +72,73 @@ const products = [
     stockQuantity: 2,
     imageUrl: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=800",
   },
+  {
+    name: "Mechanical Keyboard",
+    description: "Compact wireless mechanical keyboard with tactile switches and warm backlighting.",
+    price: 749900,
+    stockQuantity: 18,
+    imageUrl: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800",
+  },
+  {
+    name: "Studio Headphones",
+    description: "Reference-grade wired headphones tuned for detailed, balanced listening.",
+    price: 999900,
+    stockQuantity: 9,
+    imageUrl: "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800",
+  },
+  {
+    name: "Minimal Desk Chair",
+    description: "Ergonomic task chair with breathable mesh and adjustable lumbar support.",
+    price: 1599900,
+    stockQuantity: 7,
+    imageUrl: "https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=800",
+  },
+  {
+    name: "Travel Camera",
+    description: "Pocket-sized mirrorless camera for sharp everyday photos and cinematic video.",
+    price: 4299900,
+    stockQuantity: 6,
+    imageUrl: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800",
+  },
+  {
+    name: "Insulated Bottle",
+    description: "Double-wall stainless steel bottle that keeps drinks cold for 24 hours.",
+    price: 179900,
+    stockQuantity: 45,
+    imageUrl: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=800",
+  },
+  {
+    name: "Canvas Weekender",
+    description: "Structured carry-on duffel with leather trims and a dedicated shoe compartment.",
+    price: 649900,
+    stockQuantity: 14,
+    imageUrl: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800",
+  },
+  {
+    name: "Ceramic Pour Over Set",
+    description: "Hand-finished dripper and carafe set for a clean, precise morning brew.",
+    price: 329900,
+    stockQuantity: 22,
+    imageUrl: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800",
+  },
+  {
+    name: "Portable Projector",
+    description: "Full HD smart projector with auto-focus and room-filling stereo sound.",
+    price: 2499900,
+    stockQuantity: 8,
+    imageUrl: "https://images.unsplash.com/photo-1535016120720-40c646be5580?w=800",
+  },
 ];
 
 async function main() {
-  await prisma.notificationLog.deleteMany();
-  await prisma.shippingUpdate.deleteMany();
-  await prisma.payment.deleteMany();
-  await prisma.orderItem.deleteMany();
-  await prisma.stockReservation.deleteMany();
-  await prisma.couponReservation.deleteMany();
-  await prisma.order.deleteMany();
-  await prisma.coupon.deleteMany();
-  await prisma.product.deleteMany();
-  await prisma.adminUser.deleteMany();
-
   const passwordHash = await bcrypt.hash(config.admin.password, 10);
-  await prisma.adminUser.create({
-    data: {
+  await prisma.adminUser.upsert({
+    where: { email: config.admin.email.toLowerCase() },
+    update: {
+      passwordHash,
+      name: "Store Admin",
+    },
+    create: {
       email: config.admin.email.toLowerCase(),
       passwordHash,
       name: "Store Admin",
@@ -96,12 +146,14 @@ async function main() {
   });
 
   for (const product of products) {
-    await prisma.product.create({
-      data: {
+    const slug = slugify(product.name);
+    await prisma.product.upsert({
+      where: { slug },
+      update: {
         ...product,
-        slug: slugify(product.name),
         active: true,
       },
+      create: { ...product, slug, active: true },
     });
   }
 
@@ -109,9 +161,8 @@ async function main() {
   const nextMonth = new Date(now);
   nextMonth.setMonth(nextMonth.getMonth() + 1);
 
-  await prisma.coupon.createMany({
-    data: [
-      {
+  const coupons = [
+    {
         code: "SAVE10",
         type: "PERCENT",
         value: 10,
@@ -120,8 +171,8 @@ async function main() {
         validFrom: now,
         validUntil: nextMonth,
         active: true,
-      },
-      {
+    },
+    {
         code: "FLAT500",
         type: "FIXED",
         value: 50000,
@@ -130,9 +181,22 @@ async function main() {
         validFrom: now,
         validUntil: nextMonth,
         active: true,
+    },
+  ] as const;
+
+  for (const coupon of coupons) {
+    await prisma.coupon.upsert({
+      where: { code: coupon.code },
+      update: {
+        type: coupon.type,
+        value: coupon.value,
+        maxUses: coupon.maxUses,
+        validUntil: coupon.validUntil,
+        active: true,
       },
-    ],
-  });
+      create: coupon,
+    });
+  }
 
   console.log("Seed completed");
 }

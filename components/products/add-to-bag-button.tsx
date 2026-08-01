@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ArrowRight, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -42,8 +43,17 @@ export function AddToBagButton({ productId, disabled }: AddToBagButtonProps) {
 
   return (
     <div className="space-y-3">
-      <Button onClick={handleAdd} disabled={disabled || loading} size="lg">
-        {loading ? "Adding..." : "Add to Bag"}
+      <Button
+        onClick={handleAdd}
+        disabled={disabled || loading}
+        size="lg"
+        className="h-12 w-full justify-between px-5 text-sm font-bold sm:max-w-sm"
+      >
+        <span className="flex items-center gap-2">
+          <ShoppingBag className="size-4" />
+          {loading ? "Adding..." : "Add to Bag"}
+        </span>
+        <ArrowRight className="size-4" />
       </Button>
       {error ? (
         <Alert variant="destructive">
