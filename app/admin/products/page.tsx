@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Image from "next/image";
+import { useDeferredValue, useEffect, useState } from "react";
+import { AlertTriangle, Boxes, PackageCheck, PackagePlus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,6 +30,8 @@ type Product = {
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -72,18 +76,32 @@ export default function AdminProductsPage() {
     loadProducts();
   }
 
+  const visibleProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(deferredSearch.toLowerCase()),
+  );
+  const totalStock = products.reduce((total, product) => total + product.stockQuantity, 0);
+  const lowStock = products.filter((product) => product.stockQuantity <= 5).length;
+
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Products</h1>
-        <p className="text-sm text-muted-foreground">
-          Manage catalog inventory and stock levels.
-        </p>
+    <div className="space-y-7">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div>
+          <p className="text-xs font-bold uppercase text-primary">Catalog operations</p>
+          <h1 className="mt-2 font-heading text-4xl">Products</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Manage listings, pricing, and sellable inventory.</p>
+        </div>
+        <div className="flex items-center gap-2 rounded-md border bg-white px-3 py-2 text-xs text-muted-foreground"><PackageCheck className="size-4 text-emerald-700" />Live catalog synced</div>
       </div>
 
-      <Card>
+      <div className="grid gap-3 sm:grid-cols-3">
+        {[{ label: "Active products", value: products.filter((p) => p.active).length, icon: Boxes }, { label: "Units available", value: totalStock, icon: PackageCheck }, { label: "Low stock", value: lowStock, icon: AlertTriangle }].map(({ label, value, icon: Icon }) => (
+          <div key={label} className="rounded-lg border bg-white p-4"><div className="flex items-center justify-between"><p className="text-xs font-semibold text-muted-foreground">{label}</p><Icon className="size-4 text-primary" /></div><p className="mt-3 text-2xl font-bold">{value}</p></div>
+        ))}
+      </div>
+
+      <Card className="rounded-lg shadow-none">
         <CardHeader>
-          <CardTitle>Add Product</CardTitle>
+          <div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-md bg-[#fbe1d8] text-primary"><PackagePlus className="size-4" /></span><div><CardTitle>Add product</CardTitle><p className="text-xs text-muted-foreground">Publish a new item to the live catalog</p></div></div>
         </CardHeader>
         <CardContent>
           <form onSubmit={createProduct} className="grid gap-4 md:grid-cols-2">
@@ -126,29 +144,28 @@ export default function AdminProductsPage() {
                 onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
               />
             </div>
-            <Button type="submit" className="md:col-span-2">
-              Create product
-            </Button>
+            <div className="md:col-span-2"><Button type="submit" className="h-9 px-4">Create product</Button></div>
           </form>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Inventory</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
+      <section className="overflow-hidden rounded-lg border bg-white">
+        <div className="flex flex-col justify-between gap-3 border-b p-4 sm:flex-row sm:items-center">
+          <div><h2 className="text-sm font-bold">Inventory</h2><p className="mt-1 text-xs text-muted-foreground">{visibleProducts.length} products shown</p></div>
+          <div className="relative sm:w-64"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search products" className="pl-9" /></div>
+        </div>
+        <div className="p-2 sm:p-4">
+          <Table className="min-w-[720px]">
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
+                <TableHead>Product</TableHead>
                 <TableHead>Price</TableHead>
-                <TableHead>Stock</TableHead>
-                <TableHead>Update Stock</TableHead>
+                <TableHead>Availability</TableHead>
+                <TableHead className="text-right">Update stock</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {products.map((product) => (
+              {visibleProducts.map((product) => (
                 <ProductStockRow
                   key={product.id}
                   product={product}
@@ -157,8 +174,8 @@ export default function AdminProductsPage() {
               ))}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     </div>
   );
 }
@@ -174,11 +191,11 @@ function ProductStockRow({
 
   return (
     <TableRow>
-      <TableCell>{product.name}</TableCell>
+      <TableCell><div className="flex items-center gap-3"><div className="relative size-10 overflow-hidden rounded-md bg-muted">{product.imageUrl ? <Image src={product.imageUrl} alt="" fill className="object-cover" sizes="40px" /> : null}</div><div><p className="font-semibold">{product.name}</p><p className="text-xs text-muted-foreground">{product.active ? "Published" : "Draft"}</p></div></div></TableCell>
       <TableCell>{formatCurrency(product.price)}</TableCell>
-      <TableCell>{product.stockQuantity}</TableCell>
-      <TableCell>
-        <div className="flex gap-2">
+      <TableCell><span className={product.stockQuantity <= 5 ? "font-bold text-amber-700" : "font-semibold text-emerald-700"}>{product.stockQuantity} units</span></TableCell>
+      <TableCell className="text-right">
+        <div className="flex justify-end gap-2">
           <Input
             className="w-24"
             value={stock}

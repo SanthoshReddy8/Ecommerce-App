@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
+import Link from "next/link";
+import { ArrowLeft, ArrowRight, LockKeyhole, PackageCheck, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -32,20 +33,33 @@ export default async function AdminLoginPage({
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Admin Login</CardTitle>
-        </CardHeader>
-        <CardContent>
+    <div className="grid min-h-screen bg-[#f4f5f2] lg:grid-cols-[1.05fr_.95fr]">
+      <section className="relative hidden overflow-hidden bg-[#1f2924] p-12 text-white lg:flex lg:flex-col lg:justify-between">
+        <div className="absolute -right-24 -top-24 size-80 rounded-full border border-white/8" />
+        <div className="absolute -right-10 -top-10 size-52 rounded-full border border-white/8" />
+        <Link href="/" className="relative flex items-center gap-2 text-sm font-bold text-white/70 hover:text-white"><ArrowLeft className="size-4" />Back to store</Link>
+        <div className="relative max-w-lg">
+          <span className="mb-6 grid size-12 place-items-center rounded-lg bg-[#f16645]"><ShieldCheck className="size-5" /></span>
+          <h1 className="font-heading text-6xl leading-[1.02]">Run the store.<br /><span className="text-[#ffc5ad]">See the whole flow.</span></h1>
+          <p className="mt-6 max-w-md text-base leading-7 text-white/60">Inventory, promotions, fulfillment, and shipping updates in one focused workspace.</p>
+        </div>
+        <div className="relative flex gap-8 text-xs text-white/45"><span className="flex items-center gap-2"><PackageCheck className="size-4 text-emerald-300" />Live inventory</span><span className="flex items-center gap-2"><LockKeyhole className="size-4 text-emerald-300" />Protected access</span></div>
+      </section>
+      <section className="flex min-h-screen items-center justify-center px-4 py-12 sm:px-8">
+        <div className="w-full max-w-sm">
+          <Link href="/" className="mb-10 inline-flex items-center gap-2 text-sm font-bold lg:hidden"><ArrowLeft className="size-4" />Back to store</Link>
+          <p className="text-xs font-bold uppercase text-primary">ShopFlow operations</p>
+          <h2 className="mt-3 font-heading text-4xl">Welcome back</h2>
+          <p className="mt-2 text-sm text-muted-foreground">Sign in with your administrator credentials.</p>
           <form action={login} className="space-y-4">
-            <div className="grid gap-2">
+            <div className="mt-8 grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
-                defaultValue="admin@store.com"
+                placeholder="admin@store.com"
+                autoComplete="username"
                 required
               />
             </div>
@@ -55,7 +69,8 @@ export default async function AdminLoginPage({
                 id="password"
                 name="password"
                 type="password"
-                defaultValue="changeme"
+                placeholder="Enter your password"
+                autoComplete="current-password"
                 required
               />
             </div>
@@ -64,12 +79,13 @@ export default async function AdminLoginPage({
                 <AlertDescription>Invalid admin credentials</AlertDescription>
               </Alert>
             ) : null}
-            <Button className="w-full" type="submit">
-              Sign in
+            <Button className="h-11 w-full justify-between px-4" type="submit">
+              Sign in <ArrowRight className="size-4" />
             </Button>
           </form>
-        </CardContent>
-      </Card>
+          <p className="mt-6 text-center text-xs text-muted-foreground">Access is restricted to authorized store operators.</p>
+        </div>
+      </section>
     </div>
   );
 }

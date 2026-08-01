@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft, Mail, MapPin, PackageCheck, Save, UserRound } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,42 +57,44 @@ export default function AdminOrderDetailPage() {
   }
 
   if (!order) {
-    return <p>Loading order...</p>;
+    return <div className="grid min-h-[50vh] place-items-center text-sm text-muted-foreground">Loading order...</div>;
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       <div>
-        <h1 className="text-3xl font-bold">{order.orderNumber}</h1>
-        <p className="text-sm text-muted-foreground">
-          {order.customerName} · {order.customerEmail}
-        </p>
+        <Link href="/admin/orders" className="mb-5 inline-flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground"><ArrowLeft className="size-3.5" />All orders</Link>
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+          <div><p className="text-xs font-bold uppercase text-primary">Fulfillment detail</p><h1 className="mt-2 font-heading text-4xl">{order.orderNumber}</h1><p className="mt-2 text-sm text-muted-foreground">Created {new Date(order.createdAt).toLocaleString()}</p></div>
+          <Badge variant="outline" className="w-fit">{order.status.replaceAll("_", " ")}</Badge>
+        </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
+      <div className="grid gap-5 xl:grid-cols-[1.15fr_.85fr]">
+        <div className="space-y-5">
+        <Card className="rounded-lg shadow-none">
           <CardHeader>
-            <CardTitle>Order Items</CardTitle>
+            <CardTitle>Order items</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-3">
             {order.items.map((item: any) => (
-              <div key={item.id} className="flex justify-between text-sm">
-                <span>
-                  {item.productName} x {item.quantity}
-                </span>
-                <span>{formatCurrency(item.productPrice * item.quantity)}</span>
+              <div key={item.id} className="flex items-center justify-between border-b py-3 text-sm last:border-0">
+                <div><p className="font-semibold">{item.productName}</p><p className="mt-1 text-xs text-muted-foreground">Quantity {item.quantity} × {formatCurrency(item.productPrice)}</p></div>
+                <span className="font-bold">{formatCurrency(item.productPrice * item.quantity)}</span>
               </div>
             ))}
-            <div className="flex justify-between border-t pt-2 font-semibold">
+            <div className="flex justify-between border-t pt-4 text-base font-bold">
               <span>Total</span>
               <span>{formatCurrency(order.total)}</span>
             </div>
           </CardContent>
         </Card>
+        <Card className="rounded-lg shadow-none"><CardHeader><CardTitle>Customer and delivery</CardTitle></CardHeader><CardContent className="grid gap-4 sm:grid-cols-2"><div className="flex gap-3"><UserRound className="mt-0.5 size-4 text-primary" /><div><p className="text-xs text-muted-foreground">Customer</p><p className="mt-1 font-semibold">{order.customerName}</p></div></div><div className="flex gap-3"><Mail className="mt-0.5 size-4 text-primary" /><div><p className="text-xs text-muted-foreground">Email</p><p className="mt-1 font-semibold">{order.customerEmail}</p></div></div><div className="flex gap-3 sm:col-span-2"><MapPin className="mt-0.5 size-4 text-primary" /><div><p className="text-xs text-muted-foreground">Shipping address</p><p className="mt-1 leading-6">{order.shippingAddress}</p></div></div></CardContent></Card>
+        </div>
 
-        <Card>
+        <Card className="h-fit rounded-lg border-emerald-950/15 bg-[#e6efe7] shadow-none">
           <CardHeader>
-            <CardTitle>Update Shipping</CardTitle>
+            <div className="flex items-center gap-2"><PackageCheck className="size-4 text-emerald-800" /><CardTitle>Update shipping</CardTitle></div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-2">
@@ -109,20 +113,19 @@ export default function AdminOrderDetailPage() {
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label>Note</Label>
-              <Textarea value={note} onChange={(e) => setNote(e.target.value)} />
+              <Label>Customer-facing note</Label>
+              <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Package handed to courier..." />
             </div>
-            <Button onClick={updateShipping} disabled={loading}>
-              {loading ? "Saving..." : "Update progress"}
+            <Button onClick={updateShipping} disabled={loading} className="w-full">
+              <Save className="size-4" /> {loading ? "Saving..." : "Save progress"}
             </Button>
-            <Badge>{order.status.replaceAll("_", " ")}</Badge>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
+      <Card className="rounded-lg shadow-none">
         <CardHeader>
-          <CardTitle>Shipping Timeline</CardTitle>
+          <CardTitle>Shipping timeline</CardTitle>
         </CardHeader>
         <CardContent>
           <TrackingTimeline
